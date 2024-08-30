@@ -15,7 +15,7 @@ __all__ = [
     'register_resumo_handler',
     'register_sticker_handlers',
     'register_createyourownbot_handlers',
-    'register_twitchalert_handlers'
+    'register_twitchalert_handlers',
 ]
 
 def register_all_handlers(dp, message_store):

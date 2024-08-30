@@ -1,5 +1,4 @@
 from aiogram import Dispatcher, types
-from twitchalert import twitchalert_handler  # Importa o handler do comando /twitchalert
 
 async def help_handler(message: types.Message):
     help_text = (
@@ -17,5 +16,4 @@ async def help_handler(message: types.Message):
 
 def register_handlers(dp: Dispatcher):
     dp.register_message_handler(help_handler, commands=['ajuda'])
-    dp.register_message_handler(twitchalert_handler, commands=['twitchalert'])
 

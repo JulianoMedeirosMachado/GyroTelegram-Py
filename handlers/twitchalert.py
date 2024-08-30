@@ -2,16 +2,15 @@ import aiohttp
 from aiogram import types
 from aiogram.dispatcher import Dispatcher
 import asyncio
+from config import TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET
 
 TWITCH_API_URL = 'https://api.twitch.tv/helix/streams'
-TWITCH_CLIENT_ID = 'SUA_TWITCH_CLIENT_ID'
-TWITCH_CLIENT_SECRET = 'SUA_TWITCH_CLIENT_SECRET'
 CHECK_INTERVAL = 60  # Intervalo de verificação em segundos
 
 # Armazena os canais a serem monitorados e seus respectivos chats
 watched_channels = {}
 
-async def check_twitch_streams():
+async def check_twitch_streams(bot):
     while True:
         async with aiohttp.ClientSession() as session:
             for channel_name, chat_ids in watched_channels.items():
@@ -47,5 +46,6 @@ async def twitchalert_handler(message: types.Message):
 
 def register_handlers(dp: Dispatcher):
     dp.register_message_handler(twitchalert_handler, commands=['twitchalert'])
-    dp.loop.create_task(check_twitch_streams())
+    loop = asyncio.get_event_loop()
+    loop.create_task(check_twitch_streams(dp.bot))
 
