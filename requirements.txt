@@ -1,0 +1,4 @@
+aiogram==2.25
+google-generativeai
+pillow
+yt-dlp
