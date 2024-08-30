@@ -29,4 +29,3 @@ def register_all_handlers(dp, message_store):
     register_twitchalert_handlers(dp)
 
 print("Handlers package initialized")
-
