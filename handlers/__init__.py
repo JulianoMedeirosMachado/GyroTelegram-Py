@@ -4,6 +4,7 @@ from .music import register_handlers as register_music_handlers
 from .help import register_handlers as register_help_handlers
 from .resumo import register_resumo_handler
 from .sticker import register_handlers as register_sticker_handlers
+from .createyourownbot import register_handlers as register_createyourownbot_handlers
 
 
 __all__ = ['register_ia_handlers', 'register_imgai_handlers', 
@@ -17,6 +18,7 @@ def register_all_handlers(dp, message_store):
     register_help_handlers(dp)
     register_resumo_handler(dp, message_store)
     register_sticker_handlers(dp)
+    register_createyourownbot_handlers(dp)
 
 print("Handlers package initialized")
 
