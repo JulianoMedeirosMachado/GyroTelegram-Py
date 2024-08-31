@@ -1,38 +1,50 @@
-import logging
-from aiogram import Dispatcher, types
-from collections import deque
-import google.generativeai as genai
-from config import MAX_MESSAGES, GOOGLE_API_KEY
-
-genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+import json
+import os
+from typing import List, Dict
+from aiogram import types
 
 class MessageStore:
-    def __init__(self):
-        self.store = {}
+    def __init__(self, json_file: str):
+        self.json_file = json_file
+        self.messages = {}
+        self.load()
 
-    def add_message(self, chat_id, message_id, text, timestamp):
-        if chat_id not in self.store:
-            self.store[chat_id] = deque(maxlen=MAX_MESSAGES)
-        self.store[chat_id].append({
-            'id': message_id,
+    def load(self):
+        """Carrega mensagens do arquivo JSON."""
+        if os.path.exists(self.json_file):
+            with open(self.json_file, 'r', encoding='utf-8') as file:
+                self.messages = json.load(file)
+        else:
+            self.messages = {}
+
+    def save(self):
+        """Salva mensagens no arquivo JSON."""
+        with open(self.json_file, 'w', encoding='utf-8') as file:
+            json.dump(self.messages, file, ensure_ascii=False, indent=4)
+
+    def get_messages(self, chat_id: int) -> List[Dict]:
+        """Retorna a lista de mensagens para um chat_id específico."""
+        return self.messages.get(str(chat_id), [])
+
+    def store_message(self, chat_id: int, message_id: int, text: str, timestamp: int):
+        """Armazena uma nova mensagem."""
+        if str(chat_id) not in self.messages:
+            self.messages[str(chat_id)] = []
+        self.messages[str(chat_id)].append({
+            'message_id': message_id,
             'text': text,
             'timestamp': timestamp
         })
-        logging.info(f"Mensagem adicionada ao chat {chat_id}: {text}")
+        self.save()
 
-    def get_messages(self, chat_id):
-        messages = list(self.store.get(chat_id, []))
-        logging.info(f"Mensagens recuperadas do chat {chat_id}: {messages}")
-        return messages
+    def delete_message(self, chat_id: int, message_id: int):
+        """Remove uma mensagem específica."""
+        if str(chat_id) in self.messages:
+            self.messages[str(chat_id)] = [
+                msg for msg in self.messages[str(chat_id)]
+                if msg['message_id'] != message_id
+            ]
+            self.save()
 
-async def store_message(message: types.Message, message_store: MessageStore):
-    if message.text:
-        message_store.add_message(
-            message.chat.id,
-            message.message_id,
-            message.text,
-            message.date
-        )
-        logging.info(f"Mensagem armazenada no chat {message.chat.id}: {message.text}")
+# Remova a função store_message externa se decidir manter a lógica dentro da classe
 

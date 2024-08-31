@@ -1,9 +1,8 @@
-import logging
 from aiogram import Dispatcher, types
-from collections import deque
 import google.generativeai as genai
-from config import MAX_MESSAGES, GOOGLE_API_KEY
+from config import GOOGLE_API_KEY
 from utils import MessageStore
+import logging
 
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
@@ -15,6 +14,7 @@ async def resumo_handler(message: types.Message, message_store: MessageStore):
 
         temp_message = await message.answer("📝 Gerando um resumo...")
 
+        # Carregar mensagens do chat_id
         messages = message_store.get_messages(chat_id)
         if not messages:
             await message.answer("Não há mensagens para resumir.")

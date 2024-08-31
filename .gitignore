@@ -154,3 +154,5 @@ cython_debug/
 # CUSTOM
 config.py
 watched_channels.json
+message_store.json
+messages.json

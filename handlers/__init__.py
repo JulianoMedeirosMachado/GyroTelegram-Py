@@ -1,3 +1,4 @@
+from aiogram import Dispatcher
 from .ia import register_handlers as register_ia_handlers
 from .imgai import register_handlers as register_imgai_handlers
 from .music import register_handlers as register_music_handlers
@@ -6,6 +7,7 @@ from .resumo import register_resumo_handler
 from .sticker import register_handlers as register_sticker_handlers
 from .createyourownbot import register_handlers as register_createyourownbot_handlers
 from .twitchalert import register_handlers as register_twitchalert_handlers
+from utils import MessageStore
 
 __all__ = [
     'register_ia_handlers',
@@ -18,7 +20,7 @@ __all__ = [
     'register_twitchalert_handlers',
 ]
 
-def register_all_handlers(dp, message_store):
+def register_all_handlers(dp: Dispatcher, message_store: MessageStore):
     register_ia_handlers(dp)
     register_imgai_handlers(dp)
     register_music_handlers(dp)
@@ -29,3 +31,4 @@ def register_all_handlers(dp, message_store):
     register_twitchalert_handlers(dp)
 
 print("Handlers package initialized")
+

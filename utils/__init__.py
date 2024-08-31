@@ -1,6 +1,6 @@
-from .message import MessageStore, store_message
+from .message import MessageStore
 
-__all__ = ['MessageStore', 'store_message', 'register_resumo_handler']
+__all__ = ['MessageStore']
 
 print("Utils package initialized")
 
