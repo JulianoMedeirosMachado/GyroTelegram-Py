@@ -6,7 +6,7 @@ from config import TWITCH_CLIENT_ID, TWITCH_ACCESS_TOKEN
 from .persistence import save_watched_channels, load_watched_channels
 
 TWITCH_API_URL = 'https://api.twitch.tv/helix/streams'
-CHECK_INTERVAL = 10
+CHECK_INTERVAL = 30
 
 # Carrega os canais monitorados e o estado atual dos canais
 watched_channels = load_watched_channels()
@@ -26,7 +26,6 @@ async def check_twitch_streams(bot):
                 async with session.get(TWITCH_API_URL, headers=headers, params=params) as response:
                     data = await response.json()
                     
-                    # Imprime a resposta para diagnóstico
                     print("Resposta da API do Twitch:", data)
                     
                     if 'data' not in data:
@@ -39,24 +38,26 @@ async def check_twitch_streams(bot):
                         if stream['type'] == 'live':
                             is_live = True
 
-                    # Verifica se o estado mudou e envia notificação se necessário
                     if is_live and not channel_states[channel_name]:
                         message = f"Atenção!!! {channel_name} está ao vivo! {stream['title']} - https://www.twitch.tv/{channel_name}"
                         for chat_id in chat_ids:
                             await bot.send_message(chat_id, message)
-                        channel_states[channel_name] = True  # Atualiza o estado para 'ao vivo'
+                        channel_states[channel_name] = True
                     elif not is_live and channel_states[channel_name]:
-                        channel_states[channel_name] = False  # Atualiza o estado para 'não ao vivo'
+                        channel_states[channel_name] = False
                     
         await asyncio.sleep(CHECK_INTERVAL)
 
 async def is_user_admin(chat_id, user_id, bot):
-    chat_member = await bot.get_chat_member(chat_id, user_id)
-    return chat_member.status in ('administrator', 'creator')
+    try:
+        chat_member = await bot.get_chat_member(chat_id, user_id)
+        return chat_member.status in ('administrator', 'creator')
+    except Exception as e:
+        print(f"Erro ao verificar status do usuário: {e}")
+        return False
 
 async def twitchalert_handler(message: types.Message):
-    # Verifica se é um chat privado ou grupo
-    if message.chat.type == 'private' or (message.chat.type == 'group' and await is_user_admin(message.chat.id, message.from_user.id, message.bot)):
+    if message.chat.type == 'private' or (message.chat.type in ('group', 'supergroup') and await is_user_admin(message.chat.id, message.from_user.id, message.bot)):
         args = message.get_args()
         if not args:
             await message.reply("Por favor, forneça o nome do canal.")
@@ -66,16 +67,15 @@ async def twitchalert_handler(message: types.Message):
         chat_id = message.chat.id
         if channel_name not in watched_channels:
             watched_channels[channel_name] = set()
-            channel_states[channel_name] = False  # Inicializa o estado do canal como 'não ao vivo'
+            channel_states[channel_name] = False  
         watched_channels[channel_name].add(chat_id)
-        save_watched_channels(watched_channels)  # Salva os dados
+        save_watched_channels(watched_channels) 
         await message.reply(f"Você agora está monitorando o canal {channel_name}. Iremos avisar quando ele estiver ao vivo.")
     else:
         await message.reply("Desculpe, você precisa ser um administrador para usar este comando em grupos.")
 
 async def remove_twitchalert_handler(message: types.Message):
-    # Verifica se é um chat privado ou grupo
-    if message.chat.type == 'private' or (message.chat.type == 'group' and await is_user_admin(message.chat.id, message.from_user.id, message.bot)):
+    if message.chat.type == 'private' or (message.chat.type in ('group', 'supergroup') and await is_user_admin(message.chat.id, message.from_user.id, message.bot)):
         args = message.get_args()
         if not args:
             await message.reply("Por favor, forneça o nome do canal.")
@@ -88,8 +88,8 @@ async def remove_twitchalert_handler(message: types.Message):
                 watched_channels[channel_name].remove(chat_id)
                 if not watched_channels[channel_name]:
                     del watched_channels[channel_name]
-                    del channel_states[channel_name]  # Remove o estado do canal
-                save_watched_channels(watched_channels)  # Salva os dados
+                    del channel_states[channel_name] 
+                save_watched_channels(watched_channels) 
                 await message.reply(f"Você não está mais monitorando o canal {channel_name}.")
             else:
                 await message.reply(f"Você não está monitorando o canal {channel_name}.")
