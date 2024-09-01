@@ -3,6 +3,7 @@ import google.generativeai as genai
 from config import GOOGLE_API_KEY
 from utils import MessageStore
 import logging
+import re
 
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
@@ -24,11 +25,12 @@ async def resumo_handler(message: types.Message, message_store: MessageStore):
         messages.sort(key=lambda msg: msg['timestamp'])
         messages_text = ''.join(msg['text'] for msg in messages)
 
-        prompt = f"Resuma o seguinte texto: {messages_text[:2000]}"
+        prompt = f"Resuma o seguinte texto: {messages_text[:6000]}"
         response = model.generate_content(prompt)
         response_text = response.text
+        escaped_response_text = re.sub(r'([\.!*-_~[\](){}])', r'\\\1', response_text)
 
-        await message.answer(response_text, parse_mode='markdown')
+        await message.answer(escaped_response_text, parse_mode='MarkdownV2')
 
         await message.bot.delete_message(chat_id=message.chat.id, message_id=temp_message.message_id)
 
