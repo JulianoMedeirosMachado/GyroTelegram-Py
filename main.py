@@ -19,7 +19,8 @@ async def handle_message(message: types.Message):
         chat_id=message.chat.id,
         message_id=message.message_id,
         text=message.text,
-        timestamp=message.date.timestamp()
+        timestamp=message.date.timestamp(),
+        sender_name=message.from_user.full_name
     )
 
 dp.register_message_handler(handle_message, content_types=types.ContentTypes.TEXT)

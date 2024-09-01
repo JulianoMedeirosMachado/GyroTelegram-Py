@@ -26,14 +26,15 @@ class MessageStore:
         """Retorna a lista de mensagens para um chat_id específico."""
         return self.messages.get(str(chat_id), [])
 
-    def store_message(self, chat_id: int, message_id: int, text: str, timestamp: int):
+    def store_message(self, chat_id: int, message_id: int, text: str, timestamp: int, sender_name: str):
         """Armazena uma nova mensagem."""
         if str(chat_id) not in self.messages:
             self.messages[str(chat_id)] = []
         self.messages[str(chat_id)].append({
             'message_id': message_id,
             'text': text,
-            'timestamp': timestamp
+            'timestamp': timestamp,
+            'sender_name': sender_name
         })
         self.save()
 
@@ -45,6 +46,4 @@ class MessageStore:
                 if msg['message_id'] != message_id
             ]
             self.save()
-
-# Remova a função store_message externa se decidir manter a lógica dentro da classe
 
