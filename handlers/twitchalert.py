@@ -41,28 +41,40 @@ async def check_twitch_streams(bot):
                     if is_live and not channel_states[channel_name]:
                         message = f"Atenção!!! {channel_name} está ao vivo! {stream['title']} - https://www.twitch.tv/{channel_name}"
                         for chat_id in chat_ids:
+                            print(f"Sending message to chat {chat_id}: {message}")
                             await bot.send_message(chat_id, message)
                             # Adiciona o prefixo "[ON]" ao título do grupo
                             chat = await bot.get_chat(chat_id)
+                            print(f"Chat type: {chat.type}")
                             if chat.type == 'group':
                                 title = chat.title
+                                print(f"Current title: {title}")
                                 if not title.startswith("[ON]"):
+                                    print("Setting title to [ON]...")
                                     await bot.set_chat_title(chat_id, f"[ON] {title}")
+                                else:
+                                    print("Title already starts with [ON]")
                             else:
+                                print("Not a group chat, skipping title update")
                                 await bot.send_message(chat_id, "Erro: O bot não pode setar o título em chats privados.")
                         channel_states[channel_name] = True
                     elif not is_live and channel_states[channel_name]:
                         for chat_id in chat_ids:
                             # Adiciona o prefixo "[OFF]" ao título do grupo
                             chat = await bot.get_chat(chat_id)
+                            print(f"Chat type: {chat.type}")
                             if chat.type == 'group':
                                 title = chat.title
+                                print(f"Current title: {title}")
                                 if title.startswith("[ON]"):
+                                    print("Setting title to [OFF]...")
                                     title = title.replace("[ON]", "[OFF]")
                                 elif not title.startswith("[OFF]"):
+                                    print("Setting title to [OFF]...")
                                     title = f"[OFF] {title}"
                                 await bot.set_chat_title(chat_id, title)
                             else:
+                                print("Not a group chat, skipping title update")
                                 await bot.send_message(chat_id, "Erro: O bot não pode setar o título em chats privados.")
                         channel_states[channel_name] = False
                     
