@@ -42,8 +42,28 @@ async def check_twitch_streams(bot):
                         message = f"Atenção!!! {channel_name} está ao vivo! {stream['title']} - https://www.twitch.tv/{channel_name}"
                         for chat_id in chat_ids:
                             await bot.send_message(chat_id, message)
+                            # Adiciona o prefixo "[ON]" ao título do grupo
+                            chat = await bot.get_chat(chat_id)
+                            if chat.type == 'group':
+                                title = chat.title
+                                if not title.startswith("[ON]"):
+                                    await bot.set_chat_title(chat_id, f"[ON] {title}")
+                            else:
+                                await bot.send_message(chat_id, "Erro: O bot não pode setar o título em chats privados.")
                         channel_states[channel_name] = True
                     elif not is_live and channel_states[channel_name]:
+                        for chat_id in chat_ids:
+                            # Adiciona o prefixo "[OFF]" ao título do grupo
+                            chat = await bot.get_chat(chat_id)
+                            if chat.type == 'group':
+                                title = chat.title
+                                if title.startswith("[ON]"):
+                                    title = title.replace("[ON]", "[OFF]")
+                                elif not title.startswith("[OFF]"):
+                                    title = f"[OFF] {title}"
+                                await bot.set_chat_title(chat_id, title)
+                            else:
+                                await bot.send_message(chat_id, "Erro: O bot não pode setar o título em chats privados.")
                         channel_states[channel_name] = False
                     
         await asyncio.sleep(CHECK_INTERVAL)
