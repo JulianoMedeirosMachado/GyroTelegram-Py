@@ -8,9 +8,9 @@ from .persistence import save_watched_channels, load_watched_channels
 TWITCH_API_URL = 'https://api.twitch.tv/helix/streams'
 CHECK_INTERVAL = 30
 
-# Carrega os canais monitorados e o estado atual dos canais
 watched_channels = load_watched_channels()
 channel_states = {channel: False for channel in watched_channels}
+
 
 async def check_twitch_streams(bot):
     while True:
@@ -25,13 +25,13 @@ async def check_twitch_streams(bot):
                 }
                 async with session.get(TWITCH_API_URL, headers=headers, params=params) as response:
                     data = await response.json()
-                    
+
                     print("Resposta da API do Twitch:", data)
-                    
+
                     if 'data' not in data:
                         print("A chave 'data' não está presente na resposta.")
                         continue
-                    
+
                     is_live = False
                     if data['data']:
                         stream = data['data'][0]
@@ -43,41 +43,37 @@ async def check_twitch_streams(bot):
                         for chat_id in chat_ids:
                             print(f"Sending message to chat {chat_id}: {message}")
                             await bot.send_message(chat_id, message)
-                            # Adiciona o prefixo "[ON]" ao título do grupo
                             chat = await bot.get_chat(chat_id)
                             print(f"Chat type: {chat.type}")
-                            if chat.type == 'group':
+                            if chat.type in ('group', 'supergroup'):
                                 title = chat.title
-                                print(f"Current title: {title}")
-                                if not title.startswith("[ON]"):
-                                    print("Setting title to [ON]...")
-                                    await bot.set_chat_title(chat_id, f"[ON] {title}")
-                                else:
-                                    print("Title already starts with [ON]")
+                                if title.startswith("[OFF]"):
+                                    title = title.replace("[OFF]", "[ON]")
+                                elif not title.startswith("[ON]"):
+                                    title = f"[ON] {title}"
+                                await bot.set_chat_title(chat_id, title)
                             else:
                                 print("Not a group chat, skipping title update")
-                                await bot.send_message(chat_id, "Erro: O bot não pode setar o título em chats privados.")
+                                await bot.send_message(chat_id,
+                                                       "Erro: O bot não pode setar o título em chats privados.")
                         channel_states[channel_name] = True
                     elif not is_live and channel_states[channel_name]:
                         for chat_id in chat_ids:
-                            # Adiciona o prefixo "[OFF]" ao título do grupo
                             chat = await bot.get_chat(chat_id)
                             print(f"Chat type: {chat.type}")
-                            if chat.type == 'group':
+                            if chat.type in ('group', 'supergroup'):
                                 title = chat.title
-                                print(f"Current title: {title}")
                                 if title.startswith("[ON]"):
-                                    print("Setting title to [OFF]...")
                                     title = title.replace("[ON]", "[OFF]")
                                 elif not title.startswith("[OFF]"):
-                                    print("Setting title to [OFF]...")
                                     title = f"[OFF] {title}"
                                 await bot.set_chat_title(chat_id, title)
                             else:
                                 print("Not a group chat, skipping title update")
-                                await bot.send_message(chat_id, "Erro: O bot não pode setar o título em chats privados.")
+                                await bot.send_message(chat_id,
+                                                       "Erro: O bot não pode setar o título em chats privados.")
                         channel_states[channel_name] = False
-                    
+
         await asyncio.sleep(CHECK_INTERVAL)
 
 async def is_user_admin(chat_id, user_id, bot):
