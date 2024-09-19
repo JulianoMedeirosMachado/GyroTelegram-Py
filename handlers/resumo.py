@@ -1,7 +1,7 @@
 from aiogram import Dispatcher, types
 import google.generativeai as genai
-from config import GOOGLE_API_KEY
-from utils import MessageStore
+from ..config import GOOGLE_API_KEY
+from ..utils import MessageStore
 import logging
 import re
 
@@ -23,7 +23,7 @@ async def resumo_handler(message: types.Message, message_store: MessageStore):
 
         messages.sort(key=lambda msg: msg['timestamp'])
         messages_text = ''.join(f"{msg['sender_name']}: {msg['text']}\n" for msg in messages)
-        prompt = f"Resuma o seguinte texto citando o autor de cada tópico: {messages_text[:6000]}"
+        prompt = f"Resuma as seguintes mensagens de forma breve citando o autor de cada tópico, não faça textos muito longos: {messages_text[:6000]}"
         response = model.generate_content(prompt)
         response_text = response.text
         escaped_response_text = re.sub(r'([\.!*-_~[\](){}])', r'\\\1', response_text)

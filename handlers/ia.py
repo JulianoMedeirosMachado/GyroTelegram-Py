@@ -1,7 +1,8 @@
 import logging
 from aiogram import Dispatcher, types
 import google.generativeai as genai
-from config import GOOGLE_API_KEY
+from ..config import GOOGLE_API_KEY
+import re
 
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
@@ -19,12 +20,15 @@ async def gemi_handler(message: types.Message):
         response = model.generate_content(prompt)
         response_text = response.text
 
-        if len(response_text) > 4000:
-            parts = [response_text[i:i+4000] for i in range(0, len(response_text), 4000)]
+        # Escape special Markdown characters
+        escaped_response_text = re.sub(r'([\.!*\-_~[\](){}])', r'\\\1', response_text)
+
+        if len(escaped_response_text) > 4000:
+            parts = [escaped_response_text[i:i+4000] for i in range(0, len(escaped_response_text), 4000)]
             for part in parts:
                 await message.answer(part, parse_mode='markdown')
         else:
-            await message.answer(response_text, parse_mode='markdown')
+            await message.answer(escaped_response_text, parse_mode='markdown')
 
     except Exception as e:
         await message.answer(f"Ocorrreu um erro: {str(e)}")

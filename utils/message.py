@@ -2,10 +2,12 @@ import json
 import os
 from typing import List, Dict
 from aiogram import types
+from ..config import MAX_MESSAGES
 
 class MessageStore:
     def __init__(self, json_file: str):
         self.json_file = json_file
+        self.max_messages = MAX_MESSAGES
         self.messages = {}
         self.load()
 
@@ -36,6 +38,10 @@ class MessageStore:
             'timestamp': timestamp,
             'sender_name': sender_name
         })
+        self.save()
+
+        if len(self.messages[str(chat_id)]) > self.max_messages:
+            self.messages[str(chat_id)] = self.messages[str(chat_id)][-self.max_messages:]
         self.save()
 
     def delete_message(self, chat_id: int, message_id: int):
