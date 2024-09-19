@@ -2,7 +2,7 @@ import json
 import os
 from typing import List, Dict
 from aiogram import types
-from ..config import MAX_MESSAGES
+from config import MAX_MESSAGES
 
 class MessageStore:
     def __init__(self, json_file: str):

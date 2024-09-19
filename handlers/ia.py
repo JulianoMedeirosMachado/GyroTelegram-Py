@@ -1,7 +1,7 @@
 import logging
 from aiogram import Dispatcher, types
 import google.generativeai as genai
-from ..config import GOOGLE_API_KEY
+from config import GOOGLE_API_KEY
 import re
 
 genai.configure(api_key=GOOGLE_API_KEY)
